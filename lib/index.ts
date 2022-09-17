@@ -67,7 +67,7 @@ export default {
                                 },
                             }),
                             {
-                                status: 500,
+                                status: 400,
                                 headers: {
                                     "content-type": "application/json",
                                     ...defaultHeaders,
@@ -176,7 +176,7 @@ export default {
                                 },
                             }),
                             {
-                                status: 500,
+                                status: 400,
                                 headers: {
                                     "content-type": "application/json",
                                     ...defaultHeaders,
@@ -193,7 +193,32 @@ export default {
                                 },
                             }),
                             {
-                                status: 500,
+                                status: 400,
+                                headers: {
+                                    "content-type": "application/json",
+                                    ...defaultHeaders,
+                                },
+                            }
+                        );
+
+                    // get user data and push a new token
+                    const profile = JSON.parse(
+                        fs
+                            .readFileSync(`data/users/user-${username}.json`)
+                            .toString()
+                    );
+
+                    // validate token
+                    if (!profile.tokens.includes(activeToken))
+                        return new Response(
+                            JSON.stringify({
+                                s: "failed",
+                                d: {
+                                    message: "Initial token is invalid.",
+                                },
+                            }),
+                            {
+                                status: 401,
                                 headers: {
                                     "content-type": "application/json",
                                     ...defaultHeaders,
@@ -204,45 +229,17 @@ export default {
                     // handle different methods
                     switch (request.method) {
                         case "POST":
-                            // get user data and push a new token
-                            const post_uProfile = JSON.parse(
-                                fs
-                                    .readFileSync(
-                                        `data/users/user-${username}.json`
-                                    )
-                                    .toString()
-                            );
-
-                            // validate token
-                            if (!post_uProfile.tokens.includes(activeToken))
-                                return new Response(
-                                    JSON.stringify({
-                                        s: "failed",
-                                        d: {
-                                            message:
-                                                "Initial token is invalid.",
-                                        },
-                                    }),
-                                    {
-                                        status: 401,
-                                        headers: {
-                                            "content-type": "application/json",
-                                            ...defaultHeaders,
-                                        },
-                                    }
-                                );
-
                             // create new token
                             const post_newToken = crypto
                                 .randomBytes(12)
                                 .toString("hex");
 
-                            post_uProfile.tokens.push(post_newToken);
+                            profile.tokens.push(post_newToken);
 
                             // push profile
                             fs.writeFileSync(
                                 `data/users/user-${username}.json`,
-                                JSON.stringify(post_uProfile)
+                                JSON.stringify(profile)
                             );
 
                             // respond
@@ -274,7 +271,7 @@ export default {
                                         },
                                     }),
                                     {
-                                        status: 500,
+                                        status: 400,
                                         headers: {
                                             "content-type": "application/json",
                                             ...defaultHeaders,
@@ -282,8 +279,53 @@ export default {
                                     }
                                 );
 
-                        // remove token
-                        // TODO ...
+                            // make sure tokenToDelete exists
+                            if (!profile.tokens.includes(tokenToDelete))
+                                return new Response(
+                                    JSON.stringify({
+                                        s: "failed",
+                                        d: {
+                                            message:
+                                                "Missing required body fields.",
+                                        },
+                                    }),
+                                    {
+                                        status: 400,
+                                        headers: {
+                                            "content-type": "application/json",
+                                            ...defaultHeaders,
+                                        },
+                                    }
+                                );
+
+                            // remove token
+                            profile.tokens.splice(
+                                profile.tokens.indexOf(tokenToDelete),
+                                1
+                            );
+
+                            // push profile
+                            fs.writeFileSync(
+                                `data/users/user-${username}.json`,
+                                JSON.stringify(profile)
+                            );
+
+                            // respond
+                            return new Response(
+                                JSON.stringify({
+                                    s: "succeeded",
+                                    d: {
+                                        message: "Token revoked."
+                                    },
+                                }),
+                                {
+                                    status: 200,
+                                    headers: {
+                                        "content-type": "application/json",
+                                        ...defaultHeaders,
+                                    },
+                                }
+                            );
 
                         default:
                             break;
