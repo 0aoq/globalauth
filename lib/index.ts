@@ -9,6 +9,7 @@ import config from "../config.json";
 
 import createUser from "./endpoints/create.js";
 import userTokens from "./endpoints/tokens.js";
+import userDevices from "./endpoints/devices";
 import loginUser from "./endpoints/login.js";
 
 import crypto from "node:crypto";
@@ -30,6 +31,21 @@ export const defaultHeaders = {
     Record: crypto.randomBytes(12).toString("hex"),
 };
 
+// types
+export type UserProfile = {
+    username: string;
+    password: string;
+    uuid: string;
+    profileData: {};
+    tokens: [string]; // the user should probably start with a token, right?
+    devices: Device[];
+};
+
+export type Device = {
+    name: string;
+    token: string;
+};
+
 // bun http server
 export default {
     port: config.port || 8080,
@@ -47,6 +63,9 @@ export default {
 
             case "/api/v1/users/tokens":
                 return userTokens(request);
+
+            case "/api/v1/users/devices":
+                return userDevices(request);
 
             default:
                 return new Response(`We couldn't find that. (${url.href})`, {

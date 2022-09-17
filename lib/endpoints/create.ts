@@ -90,6 +90,13 @@ export default async (request: Request) => {
                 // to be filled later... (PUT /api/v1/users/update)
             },
             tokens: [initialToken], // the user should probably start with a token, right?
+            devices: [
+                {
+                    // starting device
+                    name: request.headers.get("User-Agent"),
+                    token: initialToken,
+                },
+            ],
         })
     );
 

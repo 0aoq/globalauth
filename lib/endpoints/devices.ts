@@ -1,27 +1,21 @@
 /**
- * @file Handle the /api/v1/users/tokens endpoint
- * @name tokens.ts
+ * @file Handle the /api/v1/users/devices endpoint
+ * @name devices.ts
  * @author 0aoq <hkau@oxvs.net>
  * @license MIT
  */
 
-import crypto from "node:crypto";
 import fs from "node:fs";
 
 import { defaultHeaders, UserProfile } from "..";
 
 /**
- * @function tokens.default
- * @description Handle the tokens endpoint
+ * @function devices.default
+ * @description Handle the user devices endpoint
  */
 export default async (request: Request) => {
     // make sure method is correct
-    if (
-        request.method !== "POST" &&
-        request.method !== "DELETE" &&
-        request.method !== "PUT" &&
-        request.method !== "OPTIONS"
-    )
+    if (request.method !== "GET" && request.method !== "DELETE")
         return new Response(
             JSON.stringify({
                 s: "failed",
@@ -43,33 +37,15 @@ export default async (request: Request) => {
         username /* required */,
         activeToken /* required */,
         tokenToDelete /* required for DELETE */,
-        tokenToValidate /* required for PUT */,
-    } = await ((await request.json()) as any);
+    } = (await request.json()) as any;
 
     // validate inputs
-    if (!username || !activeToken)
+    if (!activeToken || !username)
         return new Response(
             JSON.stringify({
                 s: "failed",
                 d: {
                     message: "Missing required body fields.",
-                },
-            }),
-            {
-                status: 400,
-                headers: {
-                    "content-type": "application/json",
-                    ...defaultHeaders,
-                },
-            }
-        );
-
-    if (!fs.existsSync(`data/users/user-${username}.json`))
-        return new Response(
-            JSON.stringify({
-                s: "failed",
-                d: {
-                    message: "User does not exist!",
                 },
             }),
             {
@@ -104,78 +80,26 @@ export default async (request: Request) => {
             }
         );
 
-    // handle different methods
+    // handle methods
     switch (request.method) {
-        case "PUT":
-            // validate the given token
-            // using PUT because GET doesn't support body
-
-            // validate inputs
-            if (!tokenToValidate)
+        case "GET":
+            // return list of devices
+            if (!profile.tokens.includes(activeToken))
                 return new Response(
                     JSON.stringify({
-                        s: "failed",
+                        s: "succeeded",
                         d: {
-                            message: "Missing required body fields.",
+                            devices: profile.devices,
                         },
                     }),
                     {
-                        status: 400,
+                        status: 200,
                         headers: {
                             "content-type": "application/json",
                             ...defaultHeaders,
                         },
                     }
                 );
-
-            // check if token is included in profile
-            const put_tokenIsValid = profile.tokens.includes(tokenToValidate);
-
-            // respond
-            return new Response(
-                JSON.stringify({
-                    s: "succeeded",
-                    d: {
-                        valid: put_tokenIsValid,
-                    },
-                }),
-                {
-                    status: 200,
-                    headers: {
-                        "content-type": "application/json",
-                        ...defaultHeaders,
-                    },
-                }
-            );
-
-        case "POST":
-            // create new token
-            const post_newToken = crypto.randomBytes(12).toString("hex");
-
-            profile.tokens.push(post_newToken);
-
-            // push profile
-            fs.writeFileSync(
-                `data/users/user-${username}.json`,
-                JSON.stringify(profile)
-            );
-
-            // respond
-            return new Response(
-                JSON.stringify({
-                    s: "succeeded",
-                    d: {
-                        token: post_newToken,
-                    },
-                }),
-                {
-                    status: 200,
-                    headers: {
-                        "content-type": "application/json",
-                        ...defaultHeaders,
-                    },
-                }
-            );
 
         case "DELETE":
             // validate inputs
@@ -196,13 +120,17 @@ export default async (request: Request) => {
                     }
                 );
 
-            // make sure tokenToDelete exists
-            if (!profile.tokens.includes(tokenToDelete))
+            // remove a specific device from the list (by token)
+            const delete_device = profile.devices.find((x) => {
+                return x.token === activeToken;
+            });
+
+            if (!delete_device)
                 return new Response(
                     JSON.stringify({
                         s: "failed",
                         d: {
-                            message: "Missing required body fields.",
+                            message: "Device does not exist.",
                         },
                     }),
                     {
@@ -214,10 +142,9 @@ export default async (request: Request) => {
                     }
                 );
 
-            // remove token
-            profile.tokens.splice(profile.tokens.indexOf(tokenToDelete), 1);
+            profile.devices.splice(profile.devices.indexOf(delete_device), 1);
 
-            // push profile
+            // push new profile
             fs.writeFileSync(
                 `data/users/user-${username}.json`,
                 JSON.stringify(profile)
@@ -228,7 +155,8 @@ export default async (request: Request) => {
                 JSON.stringify({
                     s: "succeeded",
                     d: {
-                        message: "Token revoked.",
+                        devices: profile.devices,
+                        removed: delete_device,
                     },
                 }),
                 {

@@ -8,7 +8,7 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 
-import { defaultHeaders } from "..";
+import { defaultHeaders, UserProfile } from "..";
 
 /**
  * @function login.default
@@ -57,7 +57,7 @@ export default async (request: Request) => {
     // get user profile
     const profile = JSON.parse(
         fs.readFileSync(`data/users/user-${username}.json`).toString()
-    );
+    ) as UserProfile;
 
     // make sure passwords match
     if (
@@ -84,6 +84,12 @@ export default async (request: Request) => {
     const newToken = crypto.randomBytes(12).toString("hex");
 
     profile.tokens.push(newToken);
+
+    // create new device
+    profile.devices.push({
+        name: request.headers.get("User-Agent"),
+        token: newToken,
+    },)
 
     // push profile
     fs.writeFileSync(
