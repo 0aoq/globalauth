@@ -15,7 +15,7 @@ import { defaultHeaders, UserProfile } from "..";
  */
 export default async (request: Request) => {
     // make sure method is correct
-    if (request.method !== "GET" && request.method !== "DELETE")
+    if (request.method !== "PUT" && request.method !== "DELETE")
         return new Response(
             JSON.stringify({
                 s: "failed",
@@ -82,24 +82,24 @@ export default async (request: Request) => {
 
     // handle methods
     switch (request.method) {
-        case "GET":
+        case "PUT":
+            // using PUT for this endpoint because GET doesn't support body...
             // return list of devices
-            if (!profile.tokens.includes(activeToken))
-                return new Response(
-                    JSON.stringify({
-                        s: "succeeded",
-                        d: {
-                            devices: profile.devices,
-                        },
-                    }),
-                    {
-                        status: 200,
-                        headers: {
-                            "content-type": "application/json",
-                            ...defaultHeaders,
-                        },
-                    }
-                );
+            return new Response(
+                JSON.stringify({
+                    s: "succeeded",
+                    d: {
+                        devices: profile.devices,
+                    },
+                }),
+                {
+                    status: 200,
+                    headers: {
+                        "content-type": "application/json",
+                        ...defaultHeaders,
+                    },
+                }
+            );
 
         case "DELETE":
             // validate inputs
