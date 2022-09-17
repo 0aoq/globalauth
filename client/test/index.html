@@ -2,9 +2,9 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GlobalAuth Test</title>
 </head>
 
@@ -14,31 +14,39 @@
 
     <form action="signup" id="signup">
         <span><b>Sign Up</b></span>
-        <input type="text" placeholder="Username" name="username">
-        <input type="password" placeholder="Password" name="password">
-        <input type="submit" value="Submit">
+        <input type="text" placeholder="Username" name="username" />
+        <input type="password" placeholder="Password" name="password" />
+        <input type="submit" value="Submit" />
     </form>
 
     <form action="login" id="login">
         <span><b>Login</b></span>
-        <input type="text" placeholder="Username" name="username">
-        <input type="password" placeholder="Password" name="password">
-        <input type="submit" value="Submit">
+        <input type="text" placeholder="Username" name="username" />
+        <input type="password" placeholder="Password" name="password" />
+        <input type="submit" value="Submit" />
     </form>
 
-    <div id="devicelist"></div>
+    <div id="devicelist">
+        <h2>Devices</h2>
+    </div>
+
+    <div id="profiledata">
+        <h2>Profile Data</h2>
+    </div>
 
     <script type="module">
         import GlobalAuth from "./dist/globalauth.mjs";
 
         // init GlobalAuth
         const client = new GlobalAuth({
-            host: "http://localhost:8080"
-        })
+            host: "http://localhost:8080",
+        });
 
         // show auth status
         if (client.props.username) {
-            document.getElementById("authstatus").innerText = `Auth Status: Authenticated (Username: ${client.props.username})`;
+            document.getElementById(
+                "authstatus"
+            ).innerText = `Auth Status: Authenticated (Username: ${client.props.username})`;
 
             // handle logout
             const logoutButton = document.createElement("button");
@@ -47,54 +55,140 @@
             document.getElementById("authstatus").appendChild(logoutButton);
 
             logoutButton.addEventListener("click", () => {
-                client.logout()
+                client
+                    .logout()
                     .then(() => {
                         window.location.reload();
                     })
-                    .catch(console.error)
+                    .catch(console.error);
             });
         } else {
-            document.getElementById("authstatus").innerText = `Auth Status: Not Authenticated`;
+            document.getElementById(
+                "authstatus"
+            ).innerText = `Auth Status: Not Authenticated`;
         }
 
         // handle signup
-        document.querySelector("form#signup").addEventListener("submit", async (e) => {
-            e.preventDefault();
+        document
+            .querySelector("form#signup")
+            .addEventListener("submit", async (e) => {
+                e.preventDefault();
 
-            client.signup({
-                username: e.target.username.value,
-                password: e.target.password.value
-            }).then((res) => {
-                window.location.reload();
-            }).catch((res) => {
-                document.getElementById("result").innerText = res.message;
-            })
-        })
+                client
+                    .signup({
+                        username: e.target.username.value,
+                        password: e.target.password.value,
+                    })
+                    .then((res) => {
+                        window.location.reload();
+                    })
+                    .catch((res) => {
+                        document.getElementById("result").innerText =
+                            res.message;
+                    });
+            });
 
         // handle login
-        document.querySelector("form#login").addEventListener("submit", async (e) => {
-            e.preventDefault();
+        document
+            .querySelector("form#login")
+            .addEventListener("submit", async (e) => {
+                e.preventDefault();
 
-            client.login({
-                username: e.target.username.value,
-                password: e.target.password.value
-            }).then((res) => {
-                window.location.reload();
-            }).catch((res) => {
-                document.getElementById("result").innerText = res.message;
-            })
-        })
+                client
+                    .login({
+                        username: e.target.username.value,
+                        password: e.target.password.value,
+                    })
+                    .then((res) => {
+                        window.location.reload();
+                    })
+                    .catch((res) => {
+                        document.getElementById("result").innerText =
+                            res.message;
+                    });
+            });
 
         // check if we are authenticated
         if (client.isAuthenticated) {
             // show devices
-            client.devices({
-                type: "get"
-            }).then((data) => {
-                for (let device of data.devices) {
-                    document.getElementById("devicelist").insertAdjacentHTML("beforeend", `<p><b>${device.name}</b>: ${device.token}</p>`);
-                }
-            }).catch(console.error)
+            client
+                .devices({
+                    type: "get",
+                })
+                .then((data) => {
+                    for (let device of data.devices) {
+                        document
+                            .getElementById("devicelist")
+                            .insertAdjacentHTML(
+                                "beforeend",
+                                `<p><b>${device.name}</b>: ${device.token}</p>`
+                            );
+                    }
+                })
+                .catch(console.error);
+
+            // show profile data
+            client
+                .getProfile()
+                .then((data) => {
+                    // add "create new" button
+                    document
+                        .getElementById("profiledata")
+                        .insertAdjacentHTML(
+                            "beforeend",
+                            '<button id="createNewDatapoint">Create New</button>'
+                        );
+
+                    // handle "create new" button
+                    document
+                        .getElementById("createNewDatapoint")
+                        .addEventListener("click", () => {
+                            const key = prompt("Key:");
+                            if (!key) return;
+                            const value = prompt("Value:");
+                            if (!value) return;
+
+                            client.updateProfile({
+                                type: "add",
+                                data: {
+                                    [key]: value
+                                }
+                            }).then(() => {
+                                window.location.reload();
+                            }).catch((res) => {
+                                document.getElementById("result").innerText =
+                                    res.message;
+                            });
+                        });
+
+                    // add to profiledata
+                    for (let datapoint of Object.entries(
+                        data.profileData
+                    )) {
+                        document
+                            .getElementById("profiledata")
+                            .insertAdjacentHTML(
+                                "beforeend",
+                                `<p><b>${datapoint[0]}</b>: ${datapoint[1]} <button onclick="window.removeFromProfile('${datapoint[0]}')">Remove</button></p>`
+                            );
+                    }
+
+                    // handle window.removeFromProfile
+                    let disableProfileUpdates = false;
+                    window.removeFromProfile = (key) => {
+                        if (disableProfileUpdates) return;
+                        client.updateProfile({
+                            type: "remove",
+                            data: [key] // we could remove multiple at a time, but we won't
+                        });
+
+                        removeFromProfile = true;
+                        setTimeout(() => {
+                            window.location.reload(); // update ui
+                        }, 100);
+                    }
+                })
+                .catch(console.error);
         }
     </script>
 </body>

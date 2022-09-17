@@ -8,6 +8,7 @@
 import config from "../config.json";
 import { log } from "./helpers";
 
+import getUserData from "./endpoints/getdata.js";
 import createUser from "./endpoints/create.js";
 import userTokens from "./endpoints/tokens.js";
 import updateUser from "./endpoints/update.js";
@@ -64,14 +65,17 @@ export default {
             case "/api/v1/users/login":
                 return loginUser(request);
 
-            case "/api/v1/users/tokens":
+            case "/api/v1/users/@me/tokens":
                 return userTokens(request);
 
-            case "/api/v1/users/devices":
+            case "/api/v1/users/@me/devices":
                 return userDevices(request);
 
-            case "/api/v1/users/update":
+            case "/api/v1/users/@me/update":
                 return updateUser(request);
+
+            case "/api/v1/users/@me":
+                return getUserData(request);
 
             default:
                 log(

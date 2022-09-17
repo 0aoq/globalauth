@@ -50,9 +50,9 @@ export type DevicesReturn = {
 };
 
 /**
- * @type FailedReturn
+ * @type DefaultReturn
  */
-export type FailedReturn = {
+export type DefaultReturn = {
     s: "succeeded" | "failed";
     d: {
         message: string;
@@ -165,7 +165,7 @@ export class GlobalAuth {
         });
     }
 
-    // /users/update endpoint
+    // /users/@me/update endpoint
     public updateProfile(props: {
         type: "add" | "remove";
         data: { [key: string]: any } | string[];
@@ -174,11 +174,12 @@ export class GlobalAuth {
         return new Promise(async (resolve, reject) => {
             // send request
             const res = (await (
-                await fetch(`${this.props.host}/api/v1/users/update`, {
+                await fetch(`${this.props.host}/api/v1/users/@me/update`, {
                     method: props.type === "add" ? "PUT" : "DELETE",
                     body: JSON.stringify({
                         username: this.props.username,
                         activeToken: this.props.token,
+                        data: props.data
                     }),
                 })
             ).json()) as UpdateReturn;
@@ -196,7 +197,35 @@ export class GlobalAuth {
         });
     }
 
-    // /users/devices endpoint
+    // /users/@me/ endpoint
+    public getProfile() {
+        if (!this.props.token) return; // must be in an account
+        return new Promise(async (resolve, reject) => {
+            // send request
+            const res = (await (
+                await fetch(`${this.props.host}/api/v1/users/@me`, {
+                    method: "PUT",
+                    body: JSON.stringify({
+                        username: this.props.username,
+                        activeToken: this.props.token,
+                    }),
+                })
+            ).json()) as DefaultReturn;
+
+            // resolve/reject based on res.s
+            switch (res.s) {
+                case "failed":
+                    reject(res.d);
+                    break;
+
+                default:
+                    resolve(res.d);
+                    break;
+            }
+        });
+    }
+
+    // /users/@me/devices endpoint
     public devices(props: {
         type: "get" | "remove";
         tokenToDelete?: string /* required only for remove */;
@@ -205,12 +234,12 @@ export class GlobalAuth {
         return new Promise(async (resolve, reject) => {
             // send request
             const res = (await (
-                await fetch(`${this.props.host}/api/v1/users/devices`, {
+                await fetch(`${this.props.host}/api/v1/users/@me/devices`, {
                     method: props.type === "get" ? "PUT" : "DELETE",
                     body: JSON.stringify({
                         username: this.props.username,
                         activeToken: this.props.token,
-                        tokenToDelete: props.tokenToDelete,
+                        tokenToDelete: props.tokenToDelete
                     }),
                 })
             ).json()) as DevicesReturn;

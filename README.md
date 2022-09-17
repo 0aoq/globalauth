@@ -33,7 +33,7 @@ Login to an existing account.
 
 ### Tokens Endpoints
 
-#### **POST** `/api/v1/users/tokens`
+#### **POST** `/api/v1/users/@me/tokens`
 
 Create a new token for the specified account.
 
@@ -44,7 +44,7 @@ Create a new token for the specified account.
 }
 ```
 
-#### **PUT** `/api/v1/users/tokens`
+#### **PUT** `/api/v1/users/@me/tokens`
 
 Validate an existing token for the specified account.
 
@@ -56,7 +56,7 @@ Validate an existing token for the specified account.
 }
 ```
 
-#### **DELETE** `/api/v1/users/tokens`
+#### **DELETE** `/api/v1/users/@me/tokens`
 
 Delete an existing token for the specified account.
 
@@ -68,9 +68,20 @@ Delete an existing token for the specified account.
 }
 ```
 
-### Update Endpoints
+### Profile Data Endpoints
 
-#### **PUT** `/api/v1/users/update`
+#### **PUT** `/api/v1/users/@me`
+
+Get the profile data from the specified account.
+
+```ts
+{
+    "username": string;
+    "activeToken": string;
+}
+```
+
+#### **PUT** `/api/v1/users/@me/update`
 
 Add profile data to the specified account.
 
@@ -84,7 +95,7 @@ Add profile data to the specified account.
 }
 ```
 
-#### **DELETE** `/api/v1/users/update`
+#### **DELETE** `/api/v1/users/@me/update`
 
 Delete profile data from the specified account.
 
@@ -98,7 +109,7 @@ Delete profile data from the specified account.
 
 ### Device Endpoints
 
-#### **PUT** `/api/v1/users/devices`
+#### **PUT** `/api/v1/users/@me/devices`
 
 Return a list of all registered devices for the specified user.
 
@@ -109,7 +120,7 @@ Return a list of all registered devices for the specified user.
 }
 ```
 
-#### **DELETE** `/api/v1/users/devices`
+#### **DELETE** `/api/v1/users/@me/devices`
 
 Delete a device by token for the specified user.
 
