@@ -179,7 +179,7 @@ export class GlobalAuth {
                     body: JSON.stringify({
                         username: this.props.username,
                         activeToken: this.props.token,
-                        data: props.data
+                        data: props.data,
                     }),
                 })
             ).json()) as UpdateReturn;
@@ -198,7 +198,7 @@ export class GlobalAuth {
     }
 
     // /users/@me/ endpoint
-    public getProfile() {
+    public getMyProfile() {
         if (!this.props.token) return; // must be in an account
         return new Promise(async (resolve, reject) => {
             // send request
@@ -208,6 +208,32 @@ export class GlobalAuth {
                     body: JSON.stringify({
                         username: this.props.username,
                         activeToken: this.props.token,
+                    }),
+                })
+            ).json()) as DefaultReturn;
+
+            // resolve/reject based on res.s
+            switch (res.s) {
+                case "failed":
+                    reject(res.d);
+                    break;
+
+                default:
+                    resolve(res.d);
+                    break;
+            }
+        });
+    }
+
+    // /users/
+    public getProfile(props: { username: string }) {
+        return new Promise(async (resolve, reject) => {
+            // send request
+            const res = (await (
+                await fetch(`${this.props.host}/api/v1/users/`, {
+                    method: "PUT",
+                    body: JSON.stringify({
+                        username: props.username,
                     }),
                 })
             ).json()) as DefaultReturn;
@@ -239,7 +265,7 @@ export class GlobalAuth {
                     body: JSON.stringify({
                         username: this.props.username,
                         activeToken: this.props.token,
-                        tokenToDelete: props.tokenToDelete
+                        tokenToDelete: props.tokenToDelete,
                     }),
                 })
             ).json()) as DevicesReturn;

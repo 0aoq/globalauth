@@ -50,10 +50,33 @@ export type Device = {
     token: string;
 };
 
+// global rate limit
+export let globalRateLimit = {
+    limit: 1000, // max per interval
+    total: 0, // this interval
+    interval: 1000, // ms
+};
+
+setInterval(() => {
+    globalRateLimit.total = 0;
+}, globalRateLimit.interval);
+
 // bun http server
 export default {
     port: config.port || 8080,
     fetch(request: Request) {
+        globalRateLimit.total++;
+
+        if (globalRateLimit.total > globalRateLimit.limit) {
+            return new Response(
+                `Too much! ${globalRateLimit.total}/${globalRateLimit.limit} request used. Please wait ${globalRateLimit.interval}ms!`,
+                {
+                    status: 418,
+                    headers: defaultHeaders,
+                }
+            );
+        }
+
         // get url
         const url = new URL(request.url);
 
@@ -75,13 +98,17 @@ export default {
                 return updateUser(request);
 
             case "/api/v1/users/@me":
-                return getUserData(request);
+                return getUserData("@me", request);
+
+            case "/api/v1/users/":
+                return getUserData(undefined, request);
 
             default:
                 log(
                     "\u{274C}",
                     `HTTP request failed with status 404! Path: ${url.pathname}`
                 );
+
                 return new Response(`We couldn't find that. (${url.href})`, {
                     status: 404,
                     headers: {

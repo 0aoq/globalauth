@@ -14,7 +14,7 @@ import { log } from "../helpers.js";
  * @function getdata.default
  * @description Handle the user getdata endpoint
  */
-export default async (request: Request) => {
+export default async (usr: string, request: Request) => {
     // handle OPTIONS
     if (request.method === "OPTIONS")
         return new Response(null, {
@@ -43,66 +43,25 @@ export default async (request: Request) => {
             }
         );
 
-    // collect inputs
-    const {
-        username /* required */,
-        activeToken /* required */,
-    } = (await request.json()) as any;
+    // handle different endpoints
+    if (usr === "@me") {
+        // requesting current user!
 
-    // validate inputs
-    if (!activeToken || !username)
-        return new Response(
-            JSON.stringify({
-                s: "failed",
-                d: {
-                    message: "Missing required body fields.",
-                },
-            }),
-            {
-                status: 400,
-                headers: {
-                    "content-type": "application/json",
-                    ...defaultHeaders,
-                },
-            }
-        );
+        // collect inputs
+        const { username /* required */, activeToken /* required */ } =
+            (await request.json()) as any;
 
-    // get user profile
-    const profile = JSON.parse(
-        fs.readFileSync(`data/users/user-${username}.json`).toString()
-    ) as UserProfile;
-
-    // validate token
-    if (!profile.tokens.includes(activeToken))
-        return new Response(
-            JSON.stringify({
-                s: "failed",
-                d: {
-                    message: "Initial token is invalid.",
-                },
-            }),
-            {
-                status: 401,
-                headers: {
-                    "content-type": "application/json",
-                    ...defaultHeaders,
-                },
-            }
-        );
-
-    // handle methods
-    switch (request.method) {
-        case "PUT":
-            // respond
+        // validate inputs
+        if (!activeToken || !username)
             return new Response(
                 JSON.stringify({
-                    s: "succeeded",
+                    s: "failed",
                     d: {
-                        profileData: profile.profileData,
+                        message: "Missing required body fields.",
                     },
                 }),
                 {
-                    status: 200,
+                    status: 400,
                     headers: {
                         "content-type": "application/json",
                         ...defaultHeaders,
@@ -110,7 +69,105 @@ export default async (request: Request) => {
                 }
             );
 
-        default:
-            break;
+        // get user profile
+        const profile = JSON.parse(
+            fs.readFileSync(`data/users/user-${username}.json`).toString()
+        ) as UserProfile;
+
+        // validate token
+        if (!profile.tokens.includes(activeToken))
+            return new Response(
+                JSON.stringify({
+                    s: "failed",
+                    d: {
+                        message: "Initial token is invalid.",
+                    },
+                }),
+                {
+                    status: 401,
+                    headers: {
+                        "content-type": "application/json",
+                        ...defaultHeaders,
+                    },
+                }
+            );
+
+        // handle methods
+        switch (request.method) {
+            case "PUT":
+                // respond
+                return new Response(
+                    JSON.stringify({
+                        s: "succeeded",
+                        d: {
+                            profileData: profile.profileData,
+                        },
+                    }),
+                    {
+                        status: 200,
+                        headers: {
+                            "content-type": "application/json",
+                            ...defaultHeaders,
+                        },
+                    }
+                );
+
+            default:
+                break;
+        }
+    } else {
+        // requesting other user! return everything that should be public
+
+        // collect inputs
+        const { username /* required */ } = (await request.json()) as any;
+
+        // validate inputs
+        if (!username)
+            return new Response(
+                JSON.stringify({
+                    s: "failed",
+                    d: {
+                        message: "Missing required body fields.",
+                    },
+                }),
+                {
+                    status: 400,
+                    headers: {
+                        "content-type": "application/json",
+                        ...defaultHeaders,
+                    },
+                }
+            );
+
+        // get user profile
+        const profile = JSON.parse(
+            fs.readFileSync(`data/users/user-${username}.json`).toString()
+        ) as UserProfile;
+
+        // handle methods
+        switch (request.method) {
+            case "PUT":
+                // respond
+                return new Response(
+                    JSON.stringify({
+                        s: "succeeded",
+                        d: {
+                            username,
+                            uuid: profile.uuid,
+                            profileData: profile.profileData,
+                        },
+                    }),
+                    {
+                        status: 200,
+                        headers: {
+                            "content-type": "application/json",
+                            ...defaultHeaders,
+                        },
+                    }
+                );
+
+            default:
+                break;
+        }
     }
 };
