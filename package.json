@@ -1,0 +1,12 @@
+{
+  "name": "globalauth",
+  "module": "lib/index.ts",
+  "type": "module",
+  "scripts": {
+    "start": "bun run lib/index.ts",
+    "dev": "bun run start"
+  },
+  "devDependencies": {
+    "bun-types": "^0.1.0"
+  }
+}
