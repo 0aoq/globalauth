@@ -16,12 +16,21 @@ import { log } from "../helpers.js";
  * @description Handle the tokens endpoint
  */
 export default async (request: Request) => {
+    // handle OPTIONS
+    if (request.method === "OPTIONS")
+        return new Response(null, {
+            status: 200,
+            headers: {
+                "Access-Control-Allow-Methods": "POST,DELETE,PUT",
+                ...defaultHeaders,
+            },
+        });
+
     // make sure method is correct
     if (
         request.method !== "POST" &&
         request.method !== "DELETE" &&
-        request.method !== "PUT" &&
-        request.method !== "OPTIONS"
+        request.method !== "PUT"
     )
         return new Response(
             JSON.stringify({
@@ -65,6 +74,7 @@ export default async (request: Request) => {
             }
         );
 
+    // make sure user exists
     if (!fs.existsSync(`data/users/user-${username}.json`))
         return new Response(
             JSON.stringify({
@@ -225,7 +235,10 @@ export default async (request: Request) => {
             );
 
             // respond
-            log("\u{1F510}", `User revoked token! Username: ${username}, Token: ${tokenToDelete}`);
+            log(
+                "\u{1F510}",
+                `User revoked token! Username: ${username}, Token: ${tokenToDelete}`
+            );
             return new Response(
                 JSON.stringify({
                     s: "succeeded",

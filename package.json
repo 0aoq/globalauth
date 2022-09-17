@@ -1,16 +1,14 @@
 {
   "name": "globalauth",
   "module": "lib/index.ts",
-  "type": "module",
+  "devDependencies": {
+    "@types/node": "^18.7.18",
+    "bun-types": "^0.1.0"
+  },
   "scripts": {
     "start": "bun run lib/index.ts",
     "dev": "bun run start",
-    "build:docs": "npx typedoc"
+    "build:client-docs": "npx typedoc client/client.ts"
   },
-  "devDependencies": {
-    "bun-types": "^0.1.0"
-  },
-  "dependencies": {
-    "@types/node": "^18.7.18"
-  }
+  "type": "module"
 }

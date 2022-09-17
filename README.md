@@ -8,25 +8,26 @@ Written for use with [bun](https://bun.sh)!
 
 ### Login/Create Endpoints
 
-##### **POST** `/api/v1/users/create`
+#### **POST** `/api/v1/users/create`
 
 Create a new user.
 
 ```ts
 {
-    "username": string,
-    "password": string
+    "username": string;
+    "uuid": string;
+    "token": string;
 }
 ```
 
-##### **POST** `/api/v1/users/login`
+#### **POST** `/api/v1/users/login`
 
 Login to an existing account.
 
 ```ts
 {
-    "username": string,
-    "password": string
+    "username": string;
+    "token": string;
 }
 ```
 
@@ -38,8 +39,8 @@ Create a new token for the specified account.
 
 ```ts
 {
-    "username": string,
-    "activeToken": string
+    "username": string;
+    "activeToken": string;
 }
 ```
 
@@ -49,9 +50,9 @@ Validate an existing token for the specified account.
 
 ```ts
 {
-    "username": string,
-    "activeToken": string,
-    "tokenToValidate": string
+    "username": string;
+    "activeToken": string;
+    "tokenToValidate": string;
 }
 ```
 
@@ -61,9 +62,9 @@ Delete an existing token for the specified account.
 
 ```ts
 {
-    "username": string,
-    "activeToken": string,
-    "tokenToDelete": string
+    "username": string;
+    "activeToken": string;
+    "tokenToDelete": string;
 }
 ```
 
@@ -75,10 +76,10 @@ Add profile data to the specified account.
 
 ```ts
 {
-    "username": string,
-    "activeToken": string,
+    "username": string;
+    "activeToken": string;
     "data": {
-        [key: string]: string
+        [key: string]: string;
     }
 }
 ```
@@ -89,9 +90,9 @@ Delete profile data from the specified account.
 
 ```ts
 {
-    "username": string,
-    "activeToken": string,
-    "data": string[]
+    "username": string;
+    "activeToken": string;
+    "data": string[];
 }
 ```
 
@@ -103,8 +104,8 @@ Return a list of all registered devices for the specified user.
 
 ```ts
 {
-    "username": string,
-    "activeToken": string
+    "username": string;
+    "activeToken": string;
 }
 ```
 
@@ -114,9 +115,9 @@ Delete a device by token for the specified user.
 
 ```ts
 {
-    "username": string,
-    "activeToken": string,
-    "tokenToDelete": string
+    "username": string;
+    "activeToken": string;
+    "tokenToDelete": string;
 }
 ```
 
@@ -139,7 +140,7 @@ For example, a successful user creation event might look similar to this:
 ```json
 {
     "username": "example",
-    "password": "example
+    "password": "example"
 }
 ```
 
@@ -173,3 +174,17 @@ But a failed user creation event that didn't pass the `password` field might loo
     }
 }
 ```
+
+## Development
+
+- Server:
+    - Clone the repository
+    - Run `cd globalauth`
+    - Make sure you have [bun](https://bun.sh) installed
+    - Run `bun install`
+    - Start server with `bun run dev`
+- Client:
+    - Clone the repository
+    - Run `cd globalauth/client`
+    - Run `npm i`
+    - Watch with `npm run watch` and `npm run watch:vite`

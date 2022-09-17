@@ -15,6 +15,16 @@ import { log } from "../helpers.js";
  * @description Handle the user update endpoint
  */
 export default async (request: Request) => {
+    // handle OPTIONS
+    if (request.method === "OPTIONS")
+        return new Response(null, {
+            status: 200,
+            headers: {
+                "Access-Control-Allow-Methods": "PUT,DELETE",
+                ...defaultHeaders,
+            },
+        });
+
     // make sure method is correct
     if (request.method !== "PUT" && request.method !== "DELETE")
         return new Response(

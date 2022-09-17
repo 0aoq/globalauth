@@ -30,6 +30,7 @@ export const defaultHeaders = {
     "X-Using": "OXVSAPI Library 0.2",
     "X-Frame-Options": "SAMEORIGIN",
     "Content-Security-Policy": "default-src 'self' *;",
+    "Access-Control-Allow-Origin": "*",
     Record: crypto.randomBytes(12).toString("hex"),
 };
 
@@ -73,7 +74,10 @@ export default {
                 return updateUser(request);
 
             default:
-                log("\u{274C}", `HTTP request failed with status 404! Path: ${url.pathname}`);
+                log(
+                    "\u{274C}",
+                    `HTTP request failed with status 404! Path: ${url.pathname}`
+                );
                 return new Response(`We couldn't find that. (${url.href})`, {
                     status: 404,
                     headers: {

@@ -16,6 +16,16 @@ import { log } from "../helpers.js";
  * @description Handle the user create endpoint
  */
 export default async (request: Request) => {
+    // handle OPTIONS
+    if (request.method === "OPTIONS")
+        return new Response(null, {
+            status: 200,
+            headers: {
+                "Access-Control-Allow-Methods": "POST",
+                ...defaultHeaders,
+            },
+        });
+
     // make sure method is correct
     if (request.method !== "POST")
         return new Response(

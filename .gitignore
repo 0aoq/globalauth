@@ -172,3 +172,9 @@ dist
 
 data/
 docs/
+
+# client
+
+client/package-lock.json
+client/lib/*.js
+client/lib/*.d.ts

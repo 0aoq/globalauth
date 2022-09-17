@@ -16,6 +16,16 @@ import { log } from "../helpers.js";
  * @description Handle the user login endpoint
  */
 export default async (request: Request) => {
+    // handle OPTIONS
+    if (request.method === "OPTIONS")
+        return new Response(null, {
+            status: 200,
+            headers: {
+                "Access-Control-Allow-Methods": "POST",
+                ...defaultHeaders,
+            },
+        });
+
     // make sure method is correct
     if (request.method !== "POST")
         return new Response(
@@ -44,6 +54,24 @@ export default async (request: Request) => {
                 s: "failed",
                 d: {
                     message: "Missing required body fields.",
+                },
+            }),
+            {
+                status: 400,
+                headers: {
+                    "content-type": "application/json",
+                    ...defaultHeaders,
+                },
+            }
+        );
+
+    // make sure user exists
+    if (!fs.existsSync(`data/users/user-${username}.json`))
+        return new Response(
+            JSON.stringify({
+                s: "failed",
+                d: {
+                    message: "User does not exist!",
                 },
             }),
             {
@@ -90,7 +118,7 @@ export default async (request: Request) => {
     profile.devices.push({
         name: request.headers.get("User-Agent"),
         token: newToken,
-    },)
+    });
 
     // push profile
     fs.writeFileSync(

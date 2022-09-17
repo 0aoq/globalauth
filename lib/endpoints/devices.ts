@@ -15,6 +15,16 @@ import { log } from "../helpers.js";
  * @description Handle the user devices endpoint
  */
 export default async (request: Request) => {
+    // handle OPTIONS
+    if (request.method === "OPTIONS")
+        return new Response(null, {
+            status: 200,
+            headers: {
+                "Access-Control-Allow-Methods": "PUT,DELETE",
+                ...defaultHeaders,
+            },
+        });
+
     // make sure method is correct
     if (request.method !== "PUT" && request.method !== "DELETE")
         return new Response(
@@ -123,10 +133,10 @@ export default async (request: Request) => {
 
             // remove a specific device from the list (by token)
             const delete_device = profile.devices.find((x) => {
-                return x.token === activeToken;
+                return x.token === tokenToDelete;
             });
 
-            if (!delete_device)
+            if (!delete_device || !profile.tokens.includes(tokenToDelete))
                 return new Response(
                     JSON.stringify({
                         s: "failed",
@@ -143,6 +153,10 @@ export default async (request: Request) => {
                     }
                 );
 
+            // delete tokenToDelete from tokens
+            profile.tokens.splice(profile.tokens.indexOf(tokenToDelete), 1);
+
+            // delete device from devices
             profile.devices.splice(profile.devices.indexOf(delete_device), 1);
 
             // push profile
@@ -152,7 +166,10 @@ export default async (request: Request) => {
             );
 
             // respond
-            log("\u{1F4BB}", `Deleted user device from storage! Username: ${username}`);
+            log(
+                "\u{1F4BB}",
+                `Deleted user device from storage! Username: ${username}`
+            );
             return new Response(
                 JSON.stringify({
                     s: "succeeded",

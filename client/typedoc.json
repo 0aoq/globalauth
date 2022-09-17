@@ -1,0 +1,7 @@
+{
+    "entryPoints": [
+        "lib/client.ts"
+    ],
+    "out": "docs",
+    "excludeExternals": true
+}

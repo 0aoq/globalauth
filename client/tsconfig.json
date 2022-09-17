@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "strict": true,
+        "target": "ES2022",
+        "module": "ESNext",
+        "declaration": true,
+        "noImplicitAny": false,
+        "inlineSources": false,
+        "removeComments": true,
+        "sourceMap": false,
+        "types": [],
+        "lib": [
+            "ESNext",
+            "DOM"
+        ]
+    },
+}

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlobalAuth Test</title>
+</head>
+
+<body>
+    <p id="authstatus"></p>
+    <p id="result"></p>
+
+    <form action="signup" id="signup">
+        <span><b>Sign Up</b></span>
+        <input type="text" placeholder="Username" name="username">
+        <input type="password" placeholder="Password" name="password">
+        <input type="submit" value="Submit">
+    </form>
+
+    <form action="login" id="login">
+        <span><b>Login</b></span>
+        <input type="text" placeholder="Username" name="username">
+        <input type="password" placeholder="Password" name="password">
+        <input type="submit" value="Submit">
+    </form>
+
+    <div id="devicelist"></div>
+
+    <script type="module">
+        import GlobalAuth from "./dist/globalauth.mjs";
+
+        // init GlobalAuth
+        const client = new GlobalAuth({
+            host: "http://localhost:8080"
+        })
+
+        // show auth status
+        if (client.props.username) {
+            document.getElementById("authstatus").innerText = `Auth Status: Authenticated (Username: ${client.props.username})`;
+
+            // handle logout
+            const logoutButton = document.createElement("button");
+            logoutButton.innerText = "Logout";
+
+            document.getElementById("authstatus").appendChild(logoutButton);
+
+            logoutButton.addEventListener("click", () => {
+                client.logout()
+                    .then(() => {
+                        window.location.reload();
+                    })
+                    .catch(console.error)
+            });
+        } else {
+            document.getElementById("authstatus").innerText = `Auth Status: Not Authenticated`;
+        }
+
+        // handle signup
+        document.querySelector("form#signup").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            client.signup({
+                username: e.target.username.value,
+                password: e.target.password.value
+            }).then((res) => {
+                window.location.reload();
+            }).catch((res) => {
+                document.getElementById("result").innerText = res.message;
+            })
+        })
+
+        // handle login
+        document.querySelector("form#login").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            client.login({
+                username: e.target.username.value,
+                password: e.target.password.value
+            }).then((res) => {
+                window.location.reload();
+            }).catch((res) => {
+                document.getElementById("result").innerText = res.message;
+            })
+        })
+
+        // check if we are authenticated
+        if (client.isAuthenticated) {
+            // show devices
+            client.devices({
+                type: "get"
+            }).then((data) => {
+                for (let device of data.devices) {
+                    document.getElementById("devicelist").insertAdjacentHTML("beforeend", `<p><b>${device.name}</b>: ${device.token}</p>`);
+                }
+            }).catch(console.error)
+        }
+    </script>
+</body>
+
+</html>
