@@ -9,6 +9,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 
 import { defaultHeaders } from "..";
+import { log } from "../helpers.js";
 
 /**
  * @function create.default
@@ -101,6 +102,7 @@ export default async (request: Request) => {
     );
 
     // respond
+    log("\u{1F389}", `New user created! Username: ${username}`);
     return new Response(
         JSON.stringify({
             s: "succeeded",

@@ -6,9 +6,11 @@
  */
 
 import config from "../config.json";
+import { log } from "./helpers";
 
 import createUser from "./endpoints/create.js";
 import userTokens from "./endpoints/tokens.js";
+import updateUser from "./endpoints/update.js";
 import userDevices from "./endpoints/devices";
 import loginUser from "./endpoints/login.js";
 
@@ -67,9 +69,13 @@ export default {
             case "/api/v1/users/devices":
                 return userDevices(request);
 
+            case "/api/v1/users/update":
+                return updateUser(request);
+
             default:
+                log("\u{274C}", `HTTP request failed with status 404! Path: ${url.pathname}`);
                 return new Response(`We couldn't find that. (${url.href})`, {
-                    status: 400,
+                    status: 404,
                     headers: {
                         "content-type": "text/plain",
                         ...defaultHeaders,

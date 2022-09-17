@@ -1,28 +1,22 @@
 /**
- * @file Handle the /api/v1/users/tokens endpoint
- * @name tokens.ts
+ * @file Handle the /api/v1/users/update endpoint
+ * @name update.ts
  * @author 0aoq <hkau@oxvs.net>
  * @license MIT
  */
 
-import crypto from "node:crypto";
 import fs from "node:fs";
 
 import { defaultHeaders, UserProfile } from "..";
 import { log } from "../helpers.js";
 
 /**
- * @function tokens.default
- * @description Handle the tokens endpoint
+ * @function update.default
+ * @description Handle the user update endpoint
  */
 export default async (request: Request) => {
     // make sure method is correct
-    if (
-        request.method !== "POST" &&
-        request.method !== "DELETE" &&
-        request.method !== "PUT" &&
-        request.method !== "OPTIONS"
-    )
+    if (request.method !== "PUT" && request.method !== "DELETE")
         return new Response(
             JSON.stringify({
                 s: "failed",
@@ -43,34 +37,16 @@ export default async (request: Request) => {
     const {
         username /* required */,
         activeToken /* required */,
-        tokenToDelete /* required for DELETE */,
-        tokenToValidate /* required for PUT */,
-    } = await ((await request.json()) as any);
+        data /* required */,
+    } = (await request.json()) as any;
 
     // validate inputs
-    if (!username || !activeToken)
+    if (!activeToken || !username || !data || typeof data !== "object")
         return new Response(
             JSON.stringify({
                 s: "failed",
                 d: {
                     message: "Missing required body fields.",
-                },
-            }),
-            {
-                status: 400,
-                headers: {
-                    "content-type": "application/json",
-                    ...defaultHeaders,
-                },
-            }
-        );
-
-    if (!fs.existsSync(`data/users/user-${username}.json`))
-        return new Response(
-            JSON.stringify({
-                s: "failed",
-                d: {
-                    message: "User does not exist!",
                 },
             }),
             {
@@ -105,55 +81,13 @@ export default async (request: Request) => {
             }
         );
 
-    // handle different methods
+    // handle methods
     switch (request.method) {
         case "PUT":
-            // validate the given token
-            // using PUT because GET doesn't support body
-
-            // validate inputs
-            if (!tokenToValidate)
-                return new Response(
-                    JSON.stringify({
-                        s: "failed",
-                        d: {
-                            message: "Missing required body fields.",
-                        },
-                    }),
-                    {
-                        status: 400,
-                        headers: {
-                            "content-type": "application/json",
-                            ...defaultHeaders,
-                        },
-                    }
-                );
-
-            // check if token is included in profile
-            const put_tokenIsValid = profile.tokens.includes(tokenToValidate);
-
-            // respond
-            return new Response(
-                JSON.stringify({
-                    s: "succeeded",
-                    d: {
-                        valid: put_tokenIsValid,
-                    },
-                }),
-                {
-                    status: 200,
-                    headers: {
-                        "content-type": "application/json",
-                        ...defaultHeaders,
-                    },
-                }
-            );
-
-        case "POST":
-            // create new token
-            const post_newToken = crypto.randomBytes(12).toString("hex");
-
-            profile.tokens.push(post_newToken);
+            // add each key/value pair from data to profile.profileData
+            for (let pair of Object.entries(data)) {
+                profile.profileData[pair[0]] = pair[1];
+            }
 
             // push profile
             fs.writeFileSync(
@@ -162,11 +96,18 @@ export default async (request: Request) => {
             );
 
             // respond
+            log(
+                "\u{1F4DD}",
+                `Updated user profile! Username: ${username}, Entries: ${
+                    Object.entries(data).length
+                } added`
+            );
+
             return new Response(
                 JSON.stringify({
                     s: "succeeded",
                     d: {
-                        token: post_newToken,
+                        profileData: profile.profileData,
                     },
                 }),
                 {
@@ -179,13 +120,13 @@ export default async (request: Request) => {
             );
 
         case "DELETE":
-            // validate inputs
-            if (!tokenToDelete)
+            // make sure data is an array
+            if (!Array.isArray(data))
                 return new Response(
                     JSON.stringify({
                         s: "failed",
                         d: {
-                            message: "Missing required body fields.",
+                            message: "DELETE event expects an array for data!",
                         },
                     }),
                     {
@@ -197,26 +138,10 @@ export default async (request: Request) => {
                     }
                 );
 
-            // make sure tokenToDelete exists
-            if (!profile.tokens.includes(tokenToDelete))
-                return new Response(
-                    JSON.stringify({
-                        s: "failed",
-                        d: {
-                            message: "Missing required body fields.",
-                        },
-                    }),
-                    {
-                        status: 400,
-                        headers: {
-                            "content-type": "application/json",
-                            ...defaultHeaders,
-                        },
-                    }
-                );
-
-            // remove token
-            profile.tokens.splice(profile.tokens.indexOf(tokenToDelete), 1);
+            // remove specified values from profile.profileData
+            for (let key of data) {
+                if (profile.profileData[key]) delete profile.profileData[key];
+            }
 
             // push profile
             fs.writeFileSync(
@@ -225,12 +150,16 @@ export default async (request: Request) => {
             );
 
             // respond
-            log("\u{1F510}", `User revoked token! Username: ${username}, Token: ${tokenToDelete}`);
+            log(
+                "\u{1F4DD}",
+                `Updated user profile! Username: ${username}, Removed: ${data.length} entries`
+            );
+
             return new Response(
                 JSON.stringify({
                     s: "succeeded",
                     d: {
-                        message: "Token revoked.",
+                        profileData: profile.profileData,
                     },
                 }),
                 {

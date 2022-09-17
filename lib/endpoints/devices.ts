@@ -8,6 +8,7 @@
 import fs from "node:fs";
 
 import { defaultHeaders, UserProfile } from "..";
+import { log } from "../helpers.js";
 
 /**
  * @function devices.default
@@ -144,13 +145,14 @@ export default async (request: Request) => {
 
             profile.devices.splice(profile.devices.indexOf(delete_device), 1);
 
-            // push new profile
+            // push profile
             fs.writeFileSync(
                 `data/users/user-${username}.json`,
                 JSON.stringify(profile)
             );
 
             // respond
+            log("\u{1F4BB}", `Deleted user device from storage! Username: ${username}`);
             return new Response(
                 JSON.stringify({
                     s: "succeeded",

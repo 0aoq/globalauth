@@ -9,6 +9,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 
 import { defaultHeaders, UserProfile } from "..";
+import { log } from "../helpers.js";
 
 /**
  * @function login.default
@@ -98,6 +99,7 @@ export default async (request: Request) => {
     );
 
     // respond
+    log("\u{1F511}", `User login! Username: ${username}`);
     return new Response(
         JSON.stringify({
             s: "succeeded",
