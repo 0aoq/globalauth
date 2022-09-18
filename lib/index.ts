@@ -32,7 +32,7 @@ export const defaultHeaders = {
     "X-Frame-Options": "SAMEORIGIN",
     "Content-Security-Policy": "default-src 'self' *;",
     "Access-Control-Allow-Origin": "*",
-    Record: crypto.randomBytes(12).toString("hex"),
+    "Set-Cookie": `ga-record=${crypto.randomBytes(12).toString("base64")}; SameSite=Lax; HttpOnly; Secure`
 };
 
 // types
@@ -69,7 +69,7 @@ export default {
 
         if (globalRateLimit.total > globalRateLimit.limit) {
             return new Response(
-                `Too much! ${globalRateLimit.total}/${globalRateLimit.limit} request used. Please wait ${globalRateLimit.interval}ms!`,
+                `Too many requests! ${globalRateLimit.total}/${globalRateLimit.limit} requests used. Please wait ${globalRateLimit.interval}ms!`,
                 {
                     status: 418,
                     headers: defaultHeaders,
